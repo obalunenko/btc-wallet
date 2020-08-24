@@ -13,3 +13,16 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# Editor configs
+.idea
+.vscode
+
+# Os specific
+.DS_Store
+
+bin/
+
+mounts/
+logs/
+
