@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/oleg-balunenko/btc-wallet/internal/db/users"
+	"github.com/oleg-balunenko/btc-wallet/internal/ops/sessions"
 )
 
 // Create creates user.
@@ -35,12 +36,16 @@ func Create(b Backends) gin.HandlerFunc {
 			return
 		}
 
-		token, err := Encode(u)
+		sess, err := sessions.New(ctx, b, u.ID)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to create token")
+			log.Errorf("failed to generate session: %v", err)
+
+			c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to create session")
 
 			return
 		}
+
+		token := sess.Token
 
 		c.JSON(http.StatusOK, response{
 			ID:    u.ID,

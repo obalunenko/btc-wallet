@@ -1,4 +1,4 @@
-package users
+package sessions
 
 import (
 	"bytes"
@@ -8,8 +8,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Decode go binary decoder, where argument v interface{} should be of pointer type.
-func Decode(str string, v interface{}) error {
+// decode go binary decoder, where argument v interface{} should be of pointer type.
+func decode(str string, v interface{}) error {
 	b, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
 		return errors.Wrap(err, `failed base64 Decode`)
@@ -22,8 +22,8 @@ func Decode(str string, v interface{}) error {
 	return d.Decode(v)
 }
 
-// Encode go binary encoder.
-func Encode(u interface{}) (string, error) {
+// encode go binary to string.
+func encode(u interface{}) (string, error) {
 	b := bytes.Buffer{}
 	e := gob.NewEncoder(&b)
 

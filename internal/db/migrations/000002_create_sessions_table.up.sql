@@ -1,0 +1,7 @@
+CREATE TABLE sessions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    token VARCHAR(255),
+    created_at DATETIME NOT NULL,
+    expires_at DATETIME DEFAULT NULL
+);
