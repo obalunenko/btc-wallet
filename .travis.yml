@@ -28,8 +28,6 @@ jobs:
         - env GO111MODULE=on
         - go test -v -race -coverpkg=./... -covermode=atomic -coverprofile=coverage.out -json ./... > tests.out
         - make lint-ci
-        - goveralls -coverprofile=coverage.out -service=travis-ci -repotoken ${COVERALLS_TOKEN}
-        - sonar-scanner -Dsonar.projectVersion=${TRAVIS_TAG}
       after_success:
         - bash <(curl -s https://codecov.io/bash)
 
