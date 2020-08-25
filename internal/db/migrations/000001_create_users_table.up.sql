@@ -1,4 +1,6 @@
-create table users (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    created_at DATETIME
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT,
+    created_at DATETIME,
+
+    PRIMARY KEY (id)
 );

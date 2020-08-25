@@ -8,17 +8,16 @@ import (
 
 const (
 	table      = ` sessions `
-	colsScan   = ` id, user_id, token, created_at, expires_at `
 	colsInsert = ` (user_id, token, created_at, expires_at) `
 )
 
 // Session represents users.User session.
 type Session struct {
-	ID        int64
-	UserID    int64
-	Token     string
-	CreatedAt sql.NullTime
-	ExpiresAt sql.NullTime
+	ID        int64        `sql:"id"`
+	UserID    int64        `sql:"user_id"`
+	Token     string       `sql:"token"`
+	CreatedAt sql.NullTime `sql:"created_at"`
+	ExpiresAt sql.NullTime `sql:"expires_at"`
 }
 
 // Valid checks if session valid by expiration date.
@@ -68,14 +67,14 @@ func Create(ctx context.Context, dbc *sql.DB, userID int64, token string, expira
 
 // Lookup returns Session by it's ID.
 func Lookup(ctx context.Context, dbc *sql.DB, id int64) (Session, error) {
-	row := dbc.QueryRowContext(ctx, "SELECT"+colsScan+"FROM"+table+"WHERE id=?", id)
+	row := dbc.QueryRowContext(ctx, "SELECT * FROM"+table+"WHERE id=?", id)
 
 	return scan(row)
 }
 
 // LookupByToken returns Session by it's token.
 func LookupByToken(ctx context.Context, dbc *sql.DB, token string) (Session, error) {
-	row := dbc.QueryRowContext(ctx, "SELECT"+colsScan+"FROM"+table+"WHERE token=?", token)
+	row := dbc.QueryRowContext(ctx, "SELECT * FROM"+table+"WHERE token=?", token)
 
 	return scan(row)
 }

@@ -47,7 +47,7 @@ func Create(b Backends) gin.HandlerFunc {
 
 		token := sess.Token
 
-		c.JSON(http.StatusOK, response{
+		c.JSON(http.StatusCreated, response{
 			ID:    u.ID,
 			Token: token,
 		})

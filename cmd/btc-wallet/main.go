@@ -6,12 +6,15 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/oleg-balunenko/btc-wallet/internal/logger"
 	"github.com/oleg-balunenko/btc-wallet/internal/routes"
 	"github.com/oleg-balunenko/btc-wallet/internal/state"
 )
 
 func main() {
 	flag.Parse()
+
+	logger.Init()
 
 	printVersion()
 

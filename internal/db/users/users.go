@@ -3,19 +3,20 @@ package users
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/pkg/errors"
 )
 
 const (
-	table   = "users"
-	columns = "id, created_at"
+	table = " users "
+	cols  = " (created_at) "
 )
 
 // User represents user's model.
 type User struct {
-	ID        int64
-	CreatedAt sql.NullTime
+	ID        int64        `sql:"id"`
+	CreatedAt sql.NullTime `sql:"created_at"`
 }
 
 // NULL represents empty User.
@@ -32,9 +33,9 @@ func Create(ctx context.Context, dbc *sql.DB) (int64, error) {
 		_ = tx.Rollback()
 	}()
 
-	res, err := tx.ExecContext(ctx, `
-	insert into `+table+` (created_at)
-	values (NOW())`)
+	now := time.Now()
+
+	res, err := tx.ExecContext(ctx, "INSERT INTO"+table+cols+"VALUES (?)", now)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to insert data")
 	}
@@ -58,7 +59,7 @@ func Create(ctx context.Context, dbc *sql.DB) (int64, error) {
 func Lookup(ctx context.Context, dbc *sql.DB, id int64) (User, error) {
 	var user User
 
-	row := dbc.QueryRowContext(ctx, "SELECT "+columns+" FROM "+table+" WHERE id=?", id)
+	row := dbc.QueryRowContext(ctx, "SELECT * FROM "+table+" WHERE id=?", id)
 
 	if err := row.Scan(&user.ID, &user.CreatedAt); err != nil {
 		return NULL, err

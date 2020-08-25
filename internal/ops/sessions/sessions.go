@@ -47,7 +47,7 @@ func AuthRequired(b Backends) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
 
-		sess, err := sessions.LookupByToken(c.Request.Context(), b.DB(), token)
+		sess, err := GetSessionFromRequest(b, c.Request)
 		if err != nil {
 			log.Errorf("failed to find token: %v", err)
 
@@ -68,4 +68,22 @@ func AuthRequired(b Backends) gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+// GetSessionFromRequest returns Session from http.Request header 'Authorization` token.
+func GetSessionFromRequest(b Backends, r *http.Request) (sessions.Session, error) {
+	dbc := b.DB()
+	ctx := r.Context()
+
+	token := r.Header.Get("Authorization")
+	if token == "" {
+		return sessions.Session{}, errors.New("token missed")
+	}
+
+	sess, err := sessions.LookupByToken(ctx, dbc, token)
+	if err != nil {
+		return sessions.Session{}, errors.Wrapf(err, "failed to find token")
+	}
+
+	return sess, nil
 }

@@ -1,0 +1,7 @@
+CREATE TABLE wallets (
+    id BIGINT AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    address VARCHAR(256) UNIQUE NOT NULL,
+
+    PRIMARY KEY (id)
+);
