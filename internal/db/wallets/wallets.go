@@ -101,7 +101,7 @@ func list(rows *sql.Rows) ([]Wallet, error) {
 	for rows.Next() {
 		var w Wallet
 
-		if err := rows.Scan(&w.ID, &w.UserID, w.Address); err != nil {
+		if err := rows.Scan(&w.ID, &w.UserID, &w.Address); err != nil {
 			return nil, err
 		}
 

@@ -27,7 +27,10 @@ func Register(st state.State) *gin.Engine {
 	r.POST("/wallets", sessions.AuthRequired(st), wallets.Create(st))
 
 	// returns wallet address and current balance in BTC and USD.
-	r.GET("/wallets/:address", sessions.AuthRequired(st), wallets.Lookup(st))
+	r.GET("/wallets/:address", sessions.AuthRequired(st), wallets.LookupAddress(st))
+
+	// returns list of wallets for user.
+	r.GET("/wallets", sessions.AuthRequired(st), wallets.List(st))
 
 	// makes a transaction from one wallet to another
 	// ○ Transaction is free if transferred to own wallet.

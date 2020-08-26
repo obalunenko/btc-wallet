@@ -73,7 +73,7 @@ func Create(b Backends) gin.HandlerFunc {
 		}
 
 		// TODO(oleg.balunenko): add real rates and update balance for new wallet.
-		c.JSON(http.StatusCreated, response{
+		c.JSON(http.StatusCreated, responseWallet{
 			Address: w.Address,
 			Balance: struct {
 				USD string `json:"usd"`
@@ -86,8 +86,8 @@ func Create(b Backends) gin.HandlerFunc {
 	}
 }
 
-// Lookup returns wallet address and current balance in BTC and USD.
-func Lookup(b Backends) gin.HandlerFunc {
+// LookupAddress returns wallet address and current balance in BTC and USD.
+func LookupAddress(b Backends) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 		dbc := b.DB()
@@ -114,7 +114,7 @@ func Lookup(b Backends) gin.HandlerFunc {
 		}
 
 		// TODO(oleg.balunenko): add real rates and update balance for new wallet.
-		c.JSON(http.StatusOK, response{
+		c.JSON(http.StatusOK, responseWallet{
 			Address: w.Address,
 			Balance: struct {
 				USD string `json:"usd"`
@@ -123,6 +123,48 @@ func Lookup(b Backends) gin.HandlerFunc {
 				USD: "usd mock",
 				BTC: "btc mock",
 			},
+		})
+	}
+}
+
+// List returns list of wallets for user.
+func List(b Backends) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.Request.Context()
+		dbc := b.DB()
+
+		sess, err := sessions.GetSessionFromRequest(b, c.Request)
+		if err != nil {
+			log.Errorf("failed to get session: %v", err)
+
+			c.AbortWithStatusJSON(http.StatusUnauthorized, "invalid session")
+
+			return
+		}
+
+		uID := sess.UserID
+
+		list, err := wallets.ListForUser(ctx, dbc, uID)
+		if err != nil {
+			log.WithFields(map[string]interface{}{
+				"user_id": uID,
+				"error":   err,
+			}).Error("failed to list wallets")
+
+			c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to list wallets")
+
+			return
+		}
+
+		addresses := make([]string, 0, len(list))
+		for _, w := range list {
+			addresses = append(addresses, w.Address)
+		}
+
+		// TODO(oleg.balunenko): add real rates and update balance for new wallet.
+		c.JSON(http.StatusOK, responseWallets{
+			Wallets: addresses,
+			Count:   len(addresses),
 		})
 	}
 }
