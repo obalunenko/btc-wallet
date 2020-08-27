@@ -1,0 +1,47 @@
+version: "3.7"
+services:
+  mysql:
+    restart: unless-stopped
+    container_name: mysql
+    image: mysql:5.7
+    networks:
+      - btc-wallet_dev
+    command: --innodb_use_native_aio=0
+    environment:
+      MYSQL_DATABASE: "btc_wallet"
+      MYSQL_ALLOW_EMPTY_PASSWORD: "true"
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: ""
+      MYSQL_ROOT_PASSWORD: ""
+    ports:
+      - "3306:3306"
+    expose:
+      - "3306"
+    volumes:
+      - ./mounts/mysql:/var/lib/mysql
+
+  btc-wallet:
+    restart: unless-stopped
+    container_name: btc-wallet
+    networks:
+      - btc-wallet_dev
+    image: olegbalunenko/btc-wallet
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+    depends_on:
+      - mysql
+    volumes:
+      - ./logs:/logs
+
+volumes:
+  mysql:
+  logs:
+    driver: local
+
+networks:
+  btc-wallet_dev:
+    driver: bridge
