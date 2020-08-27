@@ -1,4 +1,4 @@
-FROM golang:1.14-alpine as build-container
+FROM golang:1.15-alpine as build-container
 
 ENV PROJECT_DIR=${GOPATH}/src/github.com/oleg-balunenko/btc-wallet
 
@@ -19,13 +19,17 @@ RUN make compile
 
 RUN mkdir /app
 RUN cp ./bin/btc-wallet /app/btc-wallet
+RUN cp ./scripts/entrypoint.sh  /app/entrypoint.sh
 
 
 FROM alpine:3.11.3 as deployment-container
 RUN apk add -U --no-cache ca-certificates
 
+RUN mkdir -p logs
+
 
 COPY --from=build-container /app/btc-wallet /btc-wallet
+COPY --from=build-container /app/entrypoint.sh /entrypoint.sh
 
-ENTRYPOINT ["/btc-wallet"]
+ENTRYPOINT ["/entrypoint.sh"]
 

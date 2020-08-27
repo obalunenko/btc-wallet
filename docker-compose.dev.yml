@@ -25,7 +25,9 @@ services:
     container_name: btc-wallet
     networks:
       - btc-wallet_dev
-    image: olegbalunenko/btc-wallet
+    build:
+      context: .
+      dockerfile: Dockerfile
     env_file:
       - .env
     ports:

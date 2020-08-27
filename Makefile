@@ -40,6 +40,21 @@ compile:
 .PHONY: compile
 
 ## Docker compose up
+dev-docker-up:
+	${call colored, docker is running...}
+	socat UNIX-LISTEN:/tmp/mysql.sock,fork TCP-CONNECT:0.0.0.0:3306 &
+	docker-compose -f ./docker-compose.dev.yml up --build
+.PHONY: dev-docker-up
+
+## Docker compose down
+dev-docker-down:
+	${call colored, docker is running...}
+	killall socat &
+	docker-compose -f ./docker-compose.dev.yml down --volumes
+
+.PHONY: dev-docker-down
+
+## Docker compose up
 docker-up:
 	${call colored, docker is running...}
 	socat UNIX-LISTEN:/tmp/mysql.sock,fork TCP-CONNECT:0.0.0.0:3306 &
@@ -53,7 +68,6 @@ docker-down:
 	docker-compose -f ./docker-compose.yml down --volumes
 
 .PHONY: docker-down
-
 
 ## Run all services
 run-local:
