@@ -34,7 +34,8 @@ services:
       - "8080:8080"
     expose:
       - "8080"
-
+    depends_on:
+      - mysql
     volumes:
       - ./logs:/logs
 
