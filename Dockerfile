@@ -25,11 +25,15 @@ RUN cp ./scripts/entrypoint.sh  /app/entrypoint.sh
 FROM alpine:3.11.3 as deployment-container
 RUN apk add -U --no-cache ca-certificates
 
+## Add the wait script to the image
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait /wait
+RUN chmod +x /wait
+
 RUN mkdir -p logs
 
 
 COPY --from=build-container /app/btc-wallet /btc-wallet
 COPY --from=build-container /app/entrypoint.sh /entrypoint.sh
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT /wait && /entrypoint.sh
 

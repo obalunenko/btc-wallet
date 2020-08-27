@@ -83,6 +83,11 @@ stop-local:
 	./scripts/stop-all.sh
 .PHONY: stop-local
 
+## db-docker-up:
+db-docker-up:
+	${call colored, db-docker-up is running...}
+	docker-compose -f docker-compose.dev.yml up --build mysql
+.PHONY: db-docker-up
 ## drop and set up all databases
 db-all-set-up:
 	${call colored, db-all-set-up is running...}
