@@ -85,6 +85,10 @@ func ConnectWithURI(uri string) (*sql.DB, error) {
 		return nil, err
 	}
 
+	if err = dbc.Ping(); err != nil {
+		return nil, err
+	}
+
 	return dbc, nil
 }
 
