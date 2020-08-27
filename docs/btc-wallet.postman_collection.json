@@ -1,0 +1,245 @@
+{
+	"info": {
+		"_postman_id": "c4057376-68f3-43f0-b6f4-a6c426724783",
+		"name": "btc-wallet",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "{{URL}}/users",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9c3e485d-6784-4798-9b7a-26c157300443",
+						"exec": [
+							"var jsonDATA = JSON.parse(responseBody)",
+							"",
+							"pm.test(\"Successful POST request\", () => {",
+							"  pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.collectionVariables.set(\"AUTH_TOKEN\",jsonDATA.token);",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{URL}}/users",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{URL}}/transactions",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "17565749-6674-4946-b679-84da0d441810",
+						"exec": [
+							"pm.test(\"Successful GET request\", () => {",
+							"  pm.response.to.have.status(200);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{AUTH_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{URL}}/transactions",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{URL}}/wallets",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a8db0f8e-9239-4e5f-85cc-822ac8b997d9",
+						"exec": [
+							"var jsonDATA = JSON.parse(responseBody)",
+							"",
+							"pm.test(\"Successful POST request\", () => {",
+							"  pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.collectionVariables.set(\"WALLET_ADDRESS\",jsonDATA.address);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{AUTH_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{URL}}/wallets",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"wallets"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{URL}}/wallets/bb26e01f-04ff-4615-b060-474dde67213a",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "870c09f8-1eb3-474c-9257-aa0e2cb3844d",
+						"exec": [
+							"var jsonDATA = JSON.parse(responseBody)",
+							"",
+							"pm.test(\"Successful GET request\", () => {",
+							"  pm.response.to.have.status(200);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{AUTH_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{URL}}/wallets/b30c6f78-7b44-46b5-8e08-40ccdae5b9bf",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"wallets",
+						"b30c6f78-7b44-46b5-8e08-40ccdae5b9bf"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{URL}}/wallets",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9abbf87f-96c4-4f59-9bf9-a31fb752656e",
+						"exec": [
+							"var jsonDATA = JSON.parse(responseBody)",
+							"",
+							"pm.test(\"Successful GET request\", () => {",
+							"  pm.response.to.have.status(200);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{AUTH_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{URL}}/wallets",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"wallets"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "40ce6b19-0805-4b59-85d5-f68f15afa360",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "c1f56378-4246-454b-917b-0aeb7fb165d4",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "6b5c40c5-2625-465d-abe5-77e008660122",
+			"key": "URL",
+			"value": "localhost:8080"
+		},
+		{
+			"id": "5dce79f4-11b7-4766-b571-468e95b88c63",
+			"key": "AUTH_TOKEN",
+			"value": "KP+BAwEBBFVzZXIB/4IAAQIBAklEAQQAAQlDcmVhdGVkQXQB/4QAAAAq/4MDAQEITnVsbFRpbWUB/4QAAQIBBFRpbWUB/4YAAQVWYWxpZAECAAAAEP+FBQEBBFRpbWUB/4YAAAAa/4IBBAEBDwEAAAAO1tcHiwAAAAD//wEBAAA="
+		},
+		{
+			"id": "a495a843-8c54-4aac-8d11-6a42046dc513",
+			"key": "WALLET_ADDRESS",
+			"value": ""
+		}
+	],
+	"protocolProfileBehavior": {}
+}
