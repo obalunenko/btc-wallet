@@ -28,6 +28,8 @@ services:
     image: olegbalunenko/btc-wallet
     env_file:
       - .env
+    environment:
+      WAIT_HOSTS: mysql:3306
     ports:
       - "8080:8080"
     expose:

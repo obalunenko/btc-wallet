@@ -30,6 +30,8 @@ services:
       dockerfile: Dockerfile
     env_file:
       - .env
+    environment:
+      WAIT_HOSTS: mysql:3306
     ports:
       - "8080:8080"
     expose:
