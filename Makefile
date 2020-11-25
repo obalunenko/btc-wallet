@@ -94,7 +94,6 @@ db-all-set-up:
 	./scripts/db-set-up.sh
 .PHONY: db-all-set-up
 
-
 ## Run up DB migrations.
 db-migrate-up:
 	${call colored, db-migrate-up is running...}
@@ -149,7 +148,6 @@ imports:
 	./scripts/fix-imports.sh
 .PHONY: imports
 
-
 ## dependencies - fetch all dependencies for sripts
 dependencies:
 	${call colored, get-dependencies is running...}
@@ -173,6 +171,11 @@ fmt:
 	${call colored, fmt is running...}
 	./scripts/fmt.sh
 .PHONY: fmt
+
+## Release new version
+new-version: lint test compile
+	./scripts/version.sh
+.PHONY: new-version
 
 
 .DEFAULT_GOAL := help
