@@ -3,7 +3,7 @@ package state
 import (
 	"database/sql"
 
-	"github.com/oleg-balunenko/btc-wallet/internal/db"
+	"github.com/obalunenko/btc-wallet/internal/db"
 )
 
 // State holds state specific information

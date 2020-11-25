@@ -6,9 +6,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/oleg-balunenko/btc-wallet/internal/logger"
-	"github.com/oleg-balunenko/btc-wallet/internal/routes"
-	"github.com/oleg-balunenko/btc-wallet/internal/state"
+	"github.com/obalunenko/btc-wallet/internal/logger"
+	"github.com/obalunenko/btc-wallet/internal/routes"
+	"github.com/obalunenko/btc-wallet/internal/state"
 )
 
 func main() {

@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/oleg-balunenko/btc-wallet/internal/db/users"
-	"github.com/oleg-balunenko/btc-wallet/internal/ops/sessions"
+	"github.com/obalunenko/btc-wallet/internal/db/users"
+	"github.com/obalunenko/btc-wallet/internal/ops/sessions"
 )
 
 // Create creates user.

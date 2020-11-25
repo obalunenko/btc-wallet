@@ -3,11 +3,11 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/oleg-balunenko/btc-wallet/internal/ops/sessions"
-	"github.com/oleg-balunenko/btc-wallet/internal/ops/transactions"
-	"github.com/oleg-balunenko/btc-wallet/internal/ops/users"
-	"github.com/oleg-balunenko/btc-wallet/internal/ops/wallets"
-	"github.com/oleg-balunenko/btc-wallet/internal/state"
+	"github.com/obalunenko/btc-wallet/internal/ops/sessions"
+	"github.com/obalunenko/btc-wallet/internal/ops/transactions"
+	"github.com/obalunenko/btc-wallet/internal/ops/users"
+	"github.com/obalunenko/btc-wallet/internal/ops/wallets"
+	"github.com/obalunenko/btc-wallet/internal/state"
 )
 
 // Register creates a new router with registered routes.

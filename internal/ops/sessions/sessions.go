@@ -9,8 +9,8 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/oleg-balunenko/btc-wallet/internal/db/sessions"
-	"github.com/oleg-balunenko/btc-wallet/internal/db/users"
+	"github.com/obalunenko/btc-wallet/internal/db/sessions"
+	"github.com/obalunenko/btc-wallet/internal/db/users"
 )
 
 // New creates session for user.

@@ -3,7 +3,7 @@
 set -e
 
 if [[ -f "$(go env GOPATH)/bin/gci" ]] || [[ -f "/usr/local/bin/hci" ]]; then
-    gogroup -rewrite -order std,other,prefix=github.com/oleg-balunenko/  $(find . -type f -name "*.go" | grep -v "vendor/" |grep -v ".git" )
+    gogroup -rewrite -order std,other,prefix=github.com/obalunenko/  $(find . -type f -name "*.go" | grep -v "vendor/" |grep -v ".git" )
 else
     printf "Cannot check gogroup, please run:
     go get -u -v github.com/Bubblyworld/gogroup/... \n"

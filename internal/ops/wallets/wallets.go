@@ -7,8 +7,8 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/oleg-balunenko/btc-wallet/internal/db/wallets"
-	"github.com/oleg-balunenko/btc-wallet/internal/ops/sessions"
+	"github.com/obalunenko/btc-wallet/internal/db/wallets"
+	"github.com/obalunenko/btc-wallet/internal/ops/sessions"
 )
 
 const (
