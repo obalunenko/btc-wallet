@@ -50,7 +50,7 @@ linters-settings:
     # make an issue if func has more lines of code than this setting and it has naked returns; default is 30
     max-func-lines: 30
   goimports:
-    local-prefixes: github.com/oleg-balunenko/btc-wallet/
+    local-prefixes: github.com/obalunenko/btc-wallet/
   unparam:
     algo: cha
     check-exported: false

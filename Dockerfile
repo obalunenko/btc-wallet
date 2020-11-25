@@ -1,6 +1,6 @@
 FROM golang:1.15-alpine as build-container
 
-ENV PROJECT_DIR=${GOPATH}/src/github.com/oleg-balunenko/btc-wallet
+ENV PROJECT_DIR=${GOPATH}/src/github.com/obalunenko/btc-wallet
 
 RUN apk update && \
     apk upgrade && \

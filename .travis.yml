@@ -1,5 +1,5 @@
 language: go
-dist: trusty
+dist: xenial
 sudo: false
 install: true
 env:
@@ -7,8 +7,6 @@ env:
   - MYAPP=btc-wallet
   - MYEMAIL=oleg.balunenko@gmail.com
   - GOPROXY=https://goproxy.io
-  - secure: GR/6MDiyr6w9/WfV7VaWHnLvLhHYJhU470yxmyS3eaq2cwm3VPW0s5hxH2eU5RknbubMNX35qENmWuyx/iK/cWEHl7fA45axaS8O6JFm9omf21TIu3a0fWX3iRKWD1WyKuCVPR1IZSFVzJkDC735aHUHDbiip7QRGuNgoEYpAuGBdQG6jz0pVgZQOuHyFJLKaOO8byk+rb4WOs6kgeq7ixvv36UQfH2ahy7d+kmc5d7tdabQa71cVyiZQTRzxaMhWtWBGj6FayNC5A4RUbOUNPaTePE9LpkrgRZDMpMrZ70O3TgH3zYDfXvO3hwO2vQL6IX9SGlkV5BAZeHdn48zILs7iB9wcEHs+65xcWGmLUfbcU8bITStSlHF550/7YobhlJu+dSkapfaP78TntXLcgSWVqn1poPb5BuV+YHgut4GpGmh6uPyXTyT1RYkuYIPtwSpclU843fkFEzDQr0PqWaxBS8n4apUnl90/wMZQonZU+9eYZma+3H6htAGjocyuQMagb0FnhQFDf74FPvZIxNOHLhmVVbe89n1wG+NavWKny6I37BUngWojHL0bRdg1U8+Vk4NgxkNpP8CSBvJg7tyRz+v3FmiDoIQtgKzFOrKyPxvmtYnQIaNskQmAIvC9YZxUsb0sUSyU2ck0iNpuNkad7PJx0bz7W39bHWHW/8=
-  - secure: RT6DanPOkGHmbjZk2Z3yrPIxpHATaKz/Cvc1dWq1P4n4+S64TQElRJAjDn3ibw6B+ygTdyYYfRPyO8XIpUvUJaxSXBjeiB55reQN6Argzx3y73j1PdFU67DiuSiXWqECVvSxSYFNxywn91wslTbyd4hcZxRbws0b4E5uEy+4nMFH+G9naOVa1iXuEz2LQTWuy531kH6FLPfY2r4XRVLLCxIjrzzAj6y0F1G9wEG1My0LinkUSXtYgiKGbxm9y7OJHOa47HDbkoAjQ2wciOs8lNlC4QQ4J3ByUEHJBX1d8Z6UQb8X0G6U1ubTE68zpAkHDZ78+YTee8Yxobef8CZYKCxBS7h8DE2/p3qZmWSAXCjM9qGjbd9yUAEE5R3EFxjaX5XEr5D/d1hFpwVGql69zJLGO6CegIlXrV1mwfHGPV0fcp0053EeVJLF8edzbDT9311HW9srMnHeASOB07M7PVgpwu863PaOYC2CcHXM84ksT38+WPK2PaNuyxVofTEqbgN+fQwtFu5MNruJalwpqLOWnonNb2a8B6ucwFNolLPYScOnUyFlKUo/CXKiMH9bfQ1rit4C8qHvCoWULUY3xksSHoMyK3i0PcQ/rt/aTbjzHyeyQemjdjXVEIxFQVjPCb5Nw4bF8pnPy8LEQ+O9apUpdoyYEwmA6BAcyPdY9ts=
 addons:
   sonarcloud:
     organization: oleg-balunenko-github
@@ -38,7 +36,7 @@ jobs:
     - 1.15.x
     os:
     - linux
-    go_import_path: github.com/oleg-balunenko/btc-wallet
+    go_import_path: github.com/obalunenko/btc-wallet
     script:
     - echo "Build stage"
     - make compile
