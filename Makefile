@@ -1,4 +1,4 @@
-NAME=luno
+NAME=btc-wallet
 
 # COLORS
 GREEN  := $(shell tput -Txterm setaf 2)
