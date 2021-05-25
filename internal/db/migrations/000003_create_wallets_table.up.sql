@@ -5,3 +5,4 @@ CREATE TABLE wallets (
 
     PRIMARY KEY (id)
 );
+COMMIT ;

@@ -20,6 +20,9 @@ type Session struct {
 	ExpiresAt sql.NullTime `sql:"expires_at"`
 }
 
+// NULL represents empty Session default value.
+var NULL = Session{}
+
 // Valid checks if session valid by expiration date.
 func (s Session) Valid() bool {
 	if s.ExpiresAt.Time.IsZero() {
@@ -82,8 +85,12 @@ func LookupByToken(ctx context.Context, dbc *sql.DB, token string) (Session, err
 func scan(row *sql.Row) (Session, error) {
 	var s Session
 
+	if err := row.Err(); err != nil {
+		return NULL, err
+	}
+
 	if err := row.Scan(&s.ID, &s.UserID, &s.Token, &s.CreatedAt, &s.ExpiresAt); err != nil {
-		return Session{}, err
+		return NULL, err
 	}
 
 	return s, nil

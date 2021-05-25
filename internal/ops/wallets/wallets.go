@@ -3,6 +3,8 @@ package wallets
 import (
 	"net/http"
 
+	"github.com/obalunenko/btc-wallet/internal/db/ledgers"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
@@ -56,7 +58,10 @@ func Create(b Backends) gin.HandlerFunc {
 
 		id, err := wallets.Create(ctx, dbc, uID, addr)
 		if err != nil {
-			log.Errorf("failed to create wallet [user_id: %d]: %v", uID, err)
+			log.WithFields(log.Fields{
+				"user_id": uID,
+				"error":   err,
+			}).Error("failed to create wallet")
 
 			c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to create wallet")
 
@@ -65,22 +70,53 @@ func Create(b Backends) gin.HandlerFunc {
 
 		w, err := wallets.Lookup(ctx, dbc, id)
 		if err != nil {
-			log.Errorf("wallet not created [user_id: %d], [address: %s], [id: %d]: %v", uID, addr, id, err)
+			log.WithFields(log.Fields{
+				"user_id":   uID,
+				"wallet_id": id,
+				"error":     err,
+			}).Error("wallet not created")
 
 			c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to create wallet")
 
 			return
 		}
 
-		// TODO(oleg.balunenko): add real rates and update balance for new wallet.
+		_, err = ledgers.Create(ctx, dbc, w.ID)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"wallet_id": w.ID,
+				"user_id":   uID,
+				"error":     err,
+			}).Error("failed to create ledger for wallet")
+
+			c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to create ledger for wallet")
+
+			return
+		}
+
+		_, err = ledgers.LookupWalletID(ctx, dbc, w.ID)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"wallet_id": w.ID,
+				"user_id":   uID,
+				"error":     err,
+			}).Error("failed to find ledger for wallet")
+
+			c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to find ledger for wallet")
+
+			return
+		}
+
+		// TODO(oleg.balunenko): Add real rates and update balance for new wallet.
 		c.JSON(http.StatusCreated, responseWallet{
 			Address: w.Address,
-			Balance: struct {
-				USD string `json:"usd"`
-				BTC string `json:"btc"`
-			}{
+			Balance: balance{
 				USD: "usd mock",
 				BTC: "btc mock",
+			},
+			Available: balance{
+				USD: "usd available mock",
+				BTC: "btc available mock",
 			},
 		})
 	}

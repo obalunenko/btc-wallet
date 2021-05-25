@@ -19,6 +19,9 @@ type Wallet struct {
 	UserID  int64  `sql:"user_id"`
 }
 
+// NULL represents empty default wallet value.
+var NULL = Wallet{}
+
 // Create creates Wallet for users.User with passed defined address.
 func Create(ctx context.Context, dbc *sql.DB, userID int64, address string) (int64, error) {
 	tx, err := dbc.Begin()
@@ -71,10 +74,6 @@ func ListForUser(ctx context.Context, dbc *sql.DB, userID int64) ([]Wallet, erro
 		return nil, err
 	}
 
-	defer func() {
-		_ = rows.Close()
-	}()
-
 	return list(rows)
 }
 
@@ -96,6 +95,10 @@ func CountForUser(ctx context.Context, dbc *sql.DB, userID int64) (int, error) {
 }
 
 func list(rows *sql.Rows) ([]Wallet, error) {
+	defer func() {
+		_ = rows.Close()
+	}()
+
 	var res []Wallet
 
 	for rows.Next() {
@@ -118,8 +121,12 @@ func list(rows *sql.Rows) ([]Wallet, error) {
 func scan(row *sql.Row) (Wallet, error) {
 	var w Wallet
 
+	if err := row.Err(); err != nil {
+		return NULL, err
+	}
+
 	if err := row.Scan(&w.ID, &w.UserID, &w.Address); err != nil {
-		return Wallet{}, err
+		return NULL, err
 	}
 
 	return w, nil
