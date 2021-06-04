@@ -1,4 +1,4 @@
-FROM golang:1.16.4-alpine as build-container
+FROM golang:1.16.5-alpine as build-container
 
 ENV PROJECT_DIR=${GOPATH}/src/github.com/obalunenko/btc-wallet
 
