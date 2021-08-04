@@ -1,6 +1,6 @@
 module github.com/obalunenko/btc-wallet
 
-go 1.15
+go 1.16
 
 require (
 	github.com/gin-gonic/gin v1.7.2
