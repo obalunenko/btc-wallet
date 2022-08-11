@@ -22,7 +22,7 @@ RUN cp ./bin/btc-wallet /app/btc-wallet
 RUN cp ./scripts/entrypoint.sh  /app/entrypoint.sh
 
 
-FROM alpine:3.16.1 as deployment-container
+FROM alpine:3.16.2 as deployment-container
 RUN apk add -U --no-cache ca-certificates
 
 ## Add the wait script to the image
