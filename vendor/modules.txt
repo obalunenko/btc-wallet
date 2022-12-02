@@ -14,7 +14,7 @@ github.com/go-playground/locales/currency
 github.com/go-playground/universal-translator
 # github.com/go-playground/validator/v10 v10.10.0
 github.com/go-playground/validator/v10
-# github.com/go-sql-driver/mysql v1.6.0
+# github.com/go-sql-driver/mysql v1.7.0
 ## explicit
 github.com/go-sql-driver/mysql
 # github.com/goccy/go-json v0.9.7
