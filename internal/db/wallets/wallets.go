@@ -75,10 +75,6 @@ func ListForUser(ctx context.Context, dbc *sql.DB, userID int64) ([]Wallet, erro
 		return nil, err
 	}
 
-	defer func() {
-		_ = rows.Close()
-	}()
-
 	return list(rows)
 }
 
@@ -100,6 +96,12 @@ func CountForUser(ctx context.Context, dbc *sql.DB, userID int64) (int, error) {
 }
 
 func list(rows *sql.Rows) ([]Wallet, error) {
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.WithError(context.Background(), err).Error("Failed to close rows")
+		}
+	}()
+
 	var res []Wallet
 
 	for rows.Next() {
