@@ -1,45 +1,17 @@
-name: Go [lint, build, test]
+name: Release
 
 on:
-  workflow_dispatch:
   push:
+    tags:
+      - 'v*'
     branches:
-      - 'master'
-    paths:
-      - 'scripts/**'
-      - 'tools/**'
-      - '**/*.go'
-      - '**/*.gohtml'
-      - '**/*.proto'
-      - 'go.mod'
-      - 'go.sum'
-      - 'Makefile'
-      - '!**.*md'
-      - '.github/workflows/**'
-      - '!.github/workflows/readme-stars.yml'
-      - 'deployments/docker-compose/go-tools-docker-compose.yml'
-  pull_request:
-    types: [ opened, synchronize, reopened ]
-    branches:
-      - '*'
-    paths:
-      - 'scripts/**'
-      - 'tools/**'
-      - '**/*.go'
-      - '**/*.gohtml'
-      - '**/*.proto'
-      - 'go.mod'
-      - 'go.sum'
-      - 'Makefile'
-      - '!**.*md'
-      - '.github/workflows/**'
-      - '!.github/workflows/readme-stars.yml'
+      - "!*"
 
 jobs:
   build:
     strategy:
       fail-fast: false
-      max-parallel: 3
+      max-parallel: 2
       matrix:
         os: [ 'ubuntu-22.04' ]
         go: [ '1.20' ]
@@ -73,22 +45,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
 
+      - name: Install tools
+        run: |
+          make install-tools
+        shell: bash
+
       - name: Build
         run: |
           make build
-        shell: bash
 
-      - name: Install GoReleaser
-        uses: goreleaser/goreleaser-action@v4
-        with:
-          install-only: true
-
-      - name: Check release
-        run: |
-          make check-releaser
-        shell: bash
-
-  testing:
+  regression_test:
     strategy:
       fail-fast: false
       max-parallel: 2
@@ -96,7 +62,7 @@ jobs:
         os: [ 'ubuntu-22.04' ]
         go: [ '1.20' ]
     runs-on: ${{ matrix.os }}
-    name: Run Tests
+    name: Regression tests
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -130,20 +96,22 @@ jobs:
           make install-tools
         shell: bash
 
-      - name: Test
+      - name: Run regression tests
+        env:
+          AOC_SESSION: ${{ secrets.AOC_SESSION }}
         run: |
-          make test
+          make test-regression
         shell: bash
 
   linting:
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 1
       matrix:
         os: [ 'ubuntu-22.04' ]
         go: [ '1.20' ]
     runs-on: ${{ matrix.os }}
-    name: Run linters
+    name: Lint
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -154,8 +122,27 @@ jobs:
         uses: actions/setup-go@v4.0.0
         with:
           go-version: ${{ matrix.go }}
+
       - run: |
           go version
+        shell: bash
+
+      - name: Set up cache
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-vendored-tools-${{ secrets.CACHE_VERSION }}
+        with:
+          path: |
+            ${{ env.GOBIN }}
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
+
+      - name: Install tools
+        run: |
+          make install-tools
         shell: bash
 
       - name: Vet
@@ -163,39 +150,21 @@ jobs:
           make vet
         shell: bash
 
-      - name: Set up cache
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-vendored-tools-${{ secrets.CACHE_VERSION }}
-        with:
-          path: |
-            ${{ env.GOBIN }}
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
-
-      - name: Install tools
-        run: |
-          make install-tools
-        shell: bash
-
       - name: Lint
         run: |
           make lint-pipeline
         shell: bash
 
-  reports:
-    needs: [ testing, linting, build ]
+  release:
+    needs: [ build, regression_test, linting ]
     strategy:
-      fail-fast: true
+      fail-fast: false
       max-parallel: 1
       matrix:
         os: [ 'ubuntu-22.04' ]
         go: [ '1.20' ]
     runs-on: ${{ matrix.os }}
-    name: Quality reports
+    name: Release
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -206,47 +175,35 @@ jobs:
         uses: actions/setup-go@v4.0.0
         with:
           go-version: ${{ matrix.go }}
+
       - run: |
           go version
         shell: bash
 
-      - name: Set up cache
-        uses: actions/cache@v3
+      - name: Docker Login
+        if: success() && startsWith(github.ref, 'refs/tags/v')
         env:
-          cache-name: cache-vendored-tools-${{ secrets.CACHE_VERSION }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "${DOCKER_PASSWORD}" | docker login --username "${DOCKER_USERNAME}" --password-stdin
+          echo "${GITHUB_TOKEN}" | docker login ghcr.io --username $GITHUB_ACTOR --password-stdin 
+
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@v4
         with:
-          path: |
-            ${{ env.GOBIN }}
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/tools/go.sum') }}
+          install-only: true
 
-      - name: Install tools
-        run: |
-          make install-tools
-        shell: bash
-
-      - name: Prepare test coverage and reports
-        run: |
-          make prepare-cover-report
-        shell: bash
-
-      - name: Prepare lint report
-        run: |
-          make lint-sonar
-        shell: bash
-
-      - name: Cover report upload
+      - name: Run GoReleaser
         if: success()
-        run: |
-          bash <(curl -s https://codecov.io/bash) -f ./coverage/full.cov
-        shell: bash
-
-      - name: SonarCloud report upload
-        uses: sonarsource/sonarcloud-github-action@v1.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          make release
+        shell: bash
 
+      - name: Clear
+        if: always() && startsWith(github.ref, 'refs/tags/v')
+        run: |
+          rm -f ${HOME}/.docker/config.json

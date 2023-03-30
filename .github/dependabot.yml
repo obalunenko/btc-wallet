@@ -17,7 +17,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     labels:
       - "dependencies"
     assignees:
@@ -28,8 +28,9 @@ updates:
       prefix: "chore"
       include: "scope"
 
+  
   - package-ecosystem: "docker"
-    directory: "/"
+    directory: "/build/docker/"
     schedule:
       interval: "daily"
     labels:
@@ -41,3 +42,5 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
+
+

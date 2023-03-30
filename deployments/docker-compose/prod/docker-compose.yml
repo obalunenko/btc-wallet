@@ -1,0 +1,72 @@
+version: '3'
+services:
+  logs:
+    restart: unless-stopped
+    container_name: btcwallet-logs
+    networks:
+      - btc-wallet_dev
+    image: 'amir20/dozzle:v4.9.1'
+    environment:
+      DOZZLE_ADDR: ':9999'
+      DOZZLE_BASE: /
+      DOZZLE_LEVEL: debug
+      DOZZLE_TAILSIZE: 300
+      DOZZLE_USERNAME: ''
+      DOZZLE_PASSWORD: ''
+      DOZZLE_KEY: ''
+      DOZZLE_FILTER: ''
+      DOZZLE_NO_ANALYTICS: 'true'
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    ports:
+      - '9999:9999'
+    expose:
+      - 9999
+
+  mysql:
+    restart: unless-stopped
+    container_name: mysql
+    image: mysql:5.7
+    networks:
+      - btc-wallet_dev
+    command: --innodb_use_native_aio=0
+    environment:
+      MYSQL_DATABASE: "btc_wallet"
+      MYSQL_ALLOW_EMPTY_PASSWORD: "true"
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: ""
+      MYSQL_ROOT_PASSWORD: ""
+    ports:
+      - "3306:3306"
+    expose:
+      - "3306"
+    volumes:
+      - ./mounts/mysql:/var/lib/mysql
+
+  btc-wallet:
+    restart: unless-stopped
+    container_name: btc-wallet
+    networks:
+      - btc-wallet_dev
+    image: olegbalunenko/btc-wallet
+    env_file:
+      - .env
+    environment:
+      WAIT_HOSTS: mysql:3306
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+    depends_on:
+      - mysql
+    volumes:
+      - ./logs:/logs
+
+volumes:
+  mysql:
+  logs:
+    driver: local
+
+networks:
+  btc-wallet_dev:
+    driver: bridge

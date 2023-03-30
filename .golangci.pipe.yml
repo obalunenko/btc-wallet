@@ -1,111 +1,31 @@
-linters-settings:
-  depguard:
-    list-type: blacklist
-    packages:
-      # logging is allowed only by logutils.Log, logrus
-      # is allowed to use only in logutils package
-      - github.com/sirupsen/logrus
-    packages-with-error-message:
-      - github.com/sirupsen/logrus: "logging is allowed only by github.com/obalunenko/logger"
-  dupl:
-    threshold: 100
-  funlen:
-    lines: 100
-    statements: 50
-  gci:
-    local-prefixes: github.com/obalunenko/btc-wallet
-  goconst:
-    min-len: 2
-    min-occurrences: 2
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-    disabled-checks:
-      - dupImport # https://github.com/go-critic/go-critic/issues/845
-      - ifElseChain
-      - hugeParam
-      - octalLiteral
-      - wrapperFunc
-  gocyclo:
-    min-complexity: 15
-  goimports:
-    local-prefixes: github.com/obalunenko/btc-wallet
-  gomnd:
-    settings:
-      mnd:
-        # don't include the "operation" and "assign"
-        checks: [ argument,case,condition,return ]
-  govet:
-    check-shadowing: true
-  lll:
-    line-length: 140
-  misspell:
-    locale: US
-  nolintlint:
-    allow-leading-space: true # don't require machine-readable nolint directives (i.e. with no leading space)
-    allow-unused: false # report any unused nolint directives
-    require-explanation: false # don't require an explanation for nolint directives
-    require-specific: false # don't require nolint directives to be specific about which linter is being skipped
-
 linters:
   disable-all: true
   enable:
-    - bodyclose
-    - deadcode
-    - depguard
-    - dogsled
-    - dupl
     - errcheck
-    - exportloopref
-    - exhaustive
-    - funlen
-    - gochecknoinits
-    - goconst
-    - gocritic
-    - gocyclo
     - gofmt
-    - goimports
-    - gomnd
-    - goprintffuncname
-    - gosec
-    - gosimple
-    - govet
-    - ineffassign
-    - lll
-    - misspell
-    - nakedret
-    - noctx
-    - nolintlint
-    - rowserrcheck
-    - staticcheck
-    - structcheck
-    - stylecheck
-    - typecheck
-    - unconvert
-    - unparam
-    - unused
-    - varcheck
-    - whitespace
     - revive
-    - wsl
+    - goimports
 
-  # don't enable:
-  # - asciicheck
-  # - scopelint
-  # - gochecknoglobals
-  # - gocognit
-  # - godot
-  # - godox
-  # - goerr113
-  # - interfacer
-  # - maligned
-  # - nestif
-  # - prealloc
-  # - testpackage
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  gofmt:
+    simplify: true
+  goimports:
+    local-prefixes: github.com/obalunenko/btc-wallet/
+  revive:
+    # see https://github.com/mgechev/revive#available-rules for details.
+    ignore-generated-header: true
+    severity: warning
+    rules:
+      - name: indent-error-flow
+        severity: warning
+      - name: exported
+        severity: warning
+      - name: defer
+        severity: warning
+        arguments: [ [ "call-chain", "loop", "method-call", "recover", "return" ] ]
 
 issues:
   exclude-use-default: false
@@ -137,9 +57,6 @@ issues:
     - path: internal/puzzles/constants.go
       linters:
         - revive
-    - path: internal/puzzles/solutions/
-      linters:
-        - gochecknoinits
 
       # Show only new issues: if there are unstaged changes or untracked files,
       # only those changes are analyzed, else only changes in HEAD~ are analyzed.
@@ -178,7 +95,7 @@ issues:
         severity: warning
 
 run:
-  issues-exit-code: 0
+  issues-exit-code: 1
   tests: true
   skip-dirs:
     - vendor/
@@ -189,7 +106,7 @@ run:
 output:
   # colored-line-number|line-number|json|tab|checkstyle|code-climate|junit-xml|github-actions
   # default is "colored-line-number"
-  format: checkstyle
+  format: github-actions
 
   # print lines of code with issue, default is true
   print-issued-lines: true

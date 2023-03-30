@@ -2,27 +2,52 @@ release:
   github:
     owner: obalunenko
     name: btc-wallet
+  footer: |
+    **Full Changelog**: https://github.com/obalunenko/btc-wallet/compare/{{ .PreviousTag }}...{{ .Tag }}
 
 env:
   - GO111MODULE=on
   - CGO_ENABLED=0
-  - GOPROXY=https://gocenter.io
+  - GOPROXY=https://proxy.golang.org,direct
+  - DOCKER_REPO=ghcr.io/obalunenko/
 before:
   hooks:
-    - go mod tidy -v
+    - go mod verify
 
 builds:
   - id: service
     binary: btc-wallet
     goos:
-      - darwin
-      - windows
       - linux
+      - darwin
     goarch:
       - amd64
       - arm
+      - arm64
+    goarm:
+      - "7"
     main: ./cmd/btc-wallet
-    ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}}
+    ldflags:
+      - "{{ .Env.GO_BUILD_LDFLAGS }}"
+
+universal_binaries:
+  - # ID of the source build
+    #
+    # Defaults to the project name.
+    id: service
+
+    # Universal binary name template.
+    #
+    # You will want to change this if you have multiple builds!
+    #
+    # Defaults to '{{ .ProjectName }}'
+    name_template: "btc-wallet"
+
+    # Whether to remove the previous single-arch binaries from the artifact list.
+    # If left as false, your end release might have both several macOS archives: amd64, arm64 and all.
+    #
+    # Defaults to false.
+    replace: true
 
 dockers:
   # You can have multiple Docker images.
@@ -37,11 +62,8 @@ dockers:
     goarm: ''
 
     # Build IDs to gather the binaries from.
-    builds:
-      - service
-    # Name templates of the built binaries that should be used.
-    binaries:
-      - btc-wallet
+    ids: ['service', 'btc-wallet']
+
     image_templates:
       - "olegbalunenko/btc-wallet:latest"
       - "olegbalunenko/btc-wallet:{{ .Tag }}"
@@ -54,8 +76,9 @@ dockers:
     skip_push: false
 
     # Path to the Dockerfile (from the project root).
-    dockerfile: releaser.Dockerfile
-
+    dockerfile: build/docker/btc-wallet/releaser.Dockerfile
+    extra_files:
+      - build/docker/btc-wallet/entrypoint.sh
 
     # If your Dockerfile copies files other than the binary itself,
     # you should list them here as well.
@@ -76,17 +99,15 @@ archives:
     format_overrides:
       - goos: windows
         format: zip
-    replacements:
-      amd64: 64-bit
-      386: 32-bit
-      darwin: macOS
-      linux: Tux
+    rlcp: true
     name_template: "{{ .Binary }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
     files:
       - LICENSE
       - README.md
-      - docker-compose.yml
-      - env.example
+      - .env.example
+      - src: deployments/docker-compose/release/docker-compose.yml
+        dst: .
+        strip_parent: true
 
 checksum:
   name_template: "{{ .ProjectName }}-{{ .Version }}-checksums.txt"
@@ -96,6 +117,7 @@ snapshot:
 
 changelog:
   sort: asc
+  use: github
   filters:
     exclude:
       - "^docs:"
@@ -110,3 +132,15 @@ changelog:
       - Rebase on master
       - "^Makefile"
       - "goreleaser"
+  groups:
+    - title: "New Features"
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: "Bug fixes"
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 10
+    - title: Other work
+      order: 999
+
+milestones:
+  - close: true
