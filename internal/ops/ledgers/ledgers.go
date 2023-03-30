@@ -1,5 +1,5 @@
 package ledgers
 
-func GetBalance(b Backends) {
+func GetBalance(_ Backends) {
 
 }

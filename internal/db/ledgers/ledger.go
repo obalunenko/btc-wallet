@@ -3,9 +3,11 @@ package ledgers
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
+	log "github.com/obalunenko/logger"
 )
 
 const (
@@ -34,7 +36,9 @@ func Create(ctx context.Context, dbc *sql.DB, walletID int64) (int64, error) {
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		if err = tx.Rollback(); err != nil {
+			log.WithError(ctx, err).Error("failed to rollback transaction")
+		}
 	}()
 
 	now := time.Now()
@@ -42,7 +46,7 @@ func Create(ctx context.Context, dbc *sql.DB, walletID int64) (int64, error) {
 	res, err := tx.ExecContext(ctx, "INSERT INTO"+table+cols+"VALUES (?, ?, ?, ?, ?)",
 		walletID, 0, 0, now, now)
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to insert data")
+		return 0, fmt.Errorf("failed to insert data: %w", err)
 	}
 
 	count, err := res.RowsAffected()
@@ -68,7 +72,9 @@ func Update(ctx context.Context, dbc *sql.DB, id int64, newBalance, newAvailable
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		if err = tx.Rollback(); err != nil {
+			log.WithError(ctx, err).Error("failed to rollback transaction")
+		}
 	}()
 
 	now := time.Now()

@@ -28,5 +28,5 @@ func (s Satoshi) ToBTC() (decimal.Decimal, error) {
 
 func (s Satoshi) ParseInt() {
 	i := big.Int{}
-	i.SetString()
+	i.SetUint64(s.i)
 }

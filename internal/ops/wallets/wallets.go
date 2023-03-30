@@ -86,7 +86,7 @@ func Create(b Backends) gin.HandlerFunc {
 
 		_, err = ledgers.Create(ctx, dbc, w.ID)
 		if err != nil {
-			log.WithFields(log.Fields{
+			log.WithFields(ctx, log.Fields{
 				"wallet_id": w.ID,
 				"user_id":   uID,
 				"error":     err,
@@ -99,7 +99,7 @@ func Create(b Backends) gin.HandlerFunc {
 
 		_, err = ledgers.LookupWalletID(ctx, dbc, w.ID)
 		if err != nil {
-			log.WithFields(log.Fields{
+			log.WithFields(ctx, log.Fields{
 				"wallet_id": w.ID,
 				"user_id":   uID,
 				"error":     err,
