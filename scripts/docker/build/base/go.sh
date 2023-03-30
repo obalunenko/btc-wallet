@@ -8,14 +8,14 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}" && git rev-parse --show-toplevel)"
 SCRIPTS_DIR="${REPO_ROOT}/scripts"
 
 SHORTCOMMIT="$(git rev-parse --short HEAD)"
-VERSION=${VERSION}
+VERSION=${VERSION:-""}
 
 if [ -z "${VERSION}" ] || [ "${VERSION}" = "${SHORTCOMMIT}" ]
  then
   VERSION="v0.0.0-${SHORTCOMMIT}"
 fi
 
-DOCKER_REPO=${DOCKER_REPO}
+DOCKER_REPO=${DOCKER_REPO:-"ghcr.io/obalunenko/btc-wallet"}
 
 source "${SCRIPTS_DIR}/helpers-source.sh"
 
