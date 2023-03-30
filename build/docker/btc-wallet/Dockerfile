@@ -46,11 +46,6 @@ WORKDIR /
 
 COPY --from=build-container /app/ /
 
-RUN mkdir -p /data/input && \
-    mkdir -p /data/result && \
-    mkdir -p /data/archive && \
-    chown -R btcwallet:btcwallet /data
-
 ENTRYPOINT ["sh", "-c", "/wait && /entrypoint.sh"]
 
 USER btcwallet

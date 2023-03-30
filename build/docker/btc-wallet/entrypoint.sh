@@ -1,16 +1,17 @@
-#!/bin/sh
-
+#!/usr/bin/env sh
 set -e
 
-echo "current user $(whoami)"
+LOGNAME=${APP_NAME}
+LOGDIR=${ROOT_DIR}/logs
+mkdir -p logs
+
+LOGFILE=${LOGDIR}/${LOGNAME}__$(date "+%d-%m-%Y_%H-%M-%S").log
+
 
 ./btc-wallet \
-  --input="${btcwallet_INPUT}" \
-  --result="${btcwallet_RESULT}" \
-  --archive="${btcwallet_ARCHIVE}" \
-  --errors="${btcwallet_RECEIVE_ERRORS}" \
-  --log_level="${btcwallet_LOG_LEVEL}" \
-  --log_format="${btcwallet_LOG_FORMAT}" \
-  --log_sentry_dsn="${btcwallet_LOG_SENTRY_DSN}" \
-  --log_sentry_trace="${btcwallet_LOG_SENTRY_TRACE}" \
-  --log_sentry_trace_level="${btcwallet_LOG_SENTRY_TRACE_LEVEL}"
+  --db_conn_max_lifetime=${BTCWALLET_DB_CONN_MAX_LIFE} \
+  --db_max_idle_conns=${BTCWALLET_DB_MAX_IDLE_CONNS} \
+  --db_max_open_conns=${BTCWALLET_DB_MAX_OPEN_CONS} \
+  --log_level=${BTCWALLET_LOG_LEVEL} \
+  --log_file=${BTCWALLET_LOG_FILE} \
+  --db=${BTCWALLET_DB}

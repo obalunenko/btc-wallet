@@ -14,11 +14,6 @@ WORKDIR /
 COPY btc-wallet /
 COPY build/docker/btc-wallet/entrypoint.sh /
 
-RUN mkdir -p /data/input && \
-    mkdir -p /data/result && \
-    mkdir -p /data/archive && \
-    chown -R btcwallet:btcwallet /data
-
 ENTRYPOINT ["/entrypoint.sh"]
 
 USER btcwallet
