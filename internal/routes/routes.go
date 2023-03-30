@@ -1,3 +1,4 @@
+// Package routes provides a set of routes for the application.
 package routes
 
 import (

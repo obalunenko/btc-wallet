@@ -1,11 +1,14 @@
+// Package users provides functions to work with users table.
 package users
 
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
+	log "github.com/obalunenko/logger"
 )
 
 const (
@@ -30,14 +33,16 @@ func Create(ctx context.Context, dbc *sql.DB) (int64, error) {
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		if err = tx.Rollback(); err != nil {
+			log.WithError(ctx, err).Error("Failed to rollback transaction")
+		}
 	}()
 
 	now := time.Now()
 
 	res, err := tx.ExecContext(ctx, "INSERT INTO"+table+cols+"VALUES (?)", now)
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to insert data")
+		return 0, fmt.Errorf("failed to insert data: %w", err)
 	}
 
 	count, err := res.RowsAffected()

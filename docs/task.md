@@ -36,7 +36,7 @@ transferred to a wallet of another user.
 ● PostgreSQL or MySQL.
 
 ● BTC<->USD conversion should be implemented using any appropriate provider of your
-preference. Rates should be up to date.
+preference. Rates should be up-to-date.
 
 ● Structure of the requests and responses should be decided by the developer.
 

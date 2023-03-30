@@ -1,13 +1,15 @@
+// Package sessions provides a simple session management system.
 package sessions
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	log "github.com/obalunenko/logger"
 
 	"github.com/obalunenko/btc-wallet/internal/db/sessions"
 	"github.com/obalunenko/btc-wallet/internal/db/users"
@@ -21,22 +23,22 @@ func New(ctx context.Context, b Backends, userID int64) (sessions.Session, error
 
 	u, err := users.Lookup(ctx, dbc, userID)
 	if err != nil {
-		return sessions.Session{}, errors.Wrapf(err, "failed to find user [id=%d]", userID)
+		return sessions.Session{}, fmt.Errorf("failed to find user [id=%d]: %w", userID, err)
 	}
 
 	token, err := encode(u)
 	if err != nil {
-		return sessions.Session{}, errors.Wrap(err, "failed to generate token")
+		return sessions.Session{}, fmt.Errorf("failed to generate token: %w", err)
 	}
 
 	id, err := sessions.Create(ctx, dbc, u.ID, token, expiration)
 	if err != nil {
-		return sessions.Session{}, errors.Wrap(err, "failed to create session")
+		return sessions.Session{}, fmt.Errorf("failed to create session: %w", err)
 	}
 
 	sess, err := sessions.Lookup(ctx, dbc, id)
 	if err != nil {
-		return sessions.Session{}, errors.Wrap(err, "session not created")
+		return sessions.Session{}, fmt.Errorf("session not created: %w", err)
 	}
 
 	return sess, nil
@@ -45,11 +47,13 @@ func New(ctx context.Context, b Backends, userID int64) (sessions.Session, error
 // AuthRequired checks if user is authorized.
 func AuthRequired(b Backends) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx := c.Request.Context()
+
 		token := c.GetHeader("Authorization")
 
 		sess, err := GetSessionFromRequest(b, c.Request)
 		if err != nil {
-			log.Errorf("failed to find token: %v", err)
+			log.WithError(ctx, err).Error("Failed to find token")
 
 			c.AbortWithStatusJSON(http.StatusUnauthorized, "invalid token")
 
@@ -57,14 +61,18 @@ func AuthRequired(b Backends) gin.HandlerFunc {
 		}
 
 		if !sess.Valid() {
-			log.Debugf("expired token: [%s: %+v]", token, sess)
+			log.WithFields(ctx, log.Fields{
+				"token": token,
+				"sess":  sess,
+			}).Debug("Token expired")
 
 			c.AbortWithStatusJSON(http.StatusUnauthorized, "token expired")
 
 			return
 		}
 
-		log.Debugf("authorized user: [id: %d]", sess.UserID)
+		log.WithField(ctx, "id", sess.UserID).
+			Debug("Authorized user")
 
 		c.Next()
 	}
@@ -82,7 +90,7 @@ func GetSessionFromRequest(b Backends, r *http.Request) (sessions.Session, error
 
 	sess, err := sessions.LookupByToken(ctx, dbc, token)
 	if err != nil {
-		return sessions.Session{}, errors.Wrapf(err, "failed to find token")
+		return sessions.Session{}, fmt.Errorf("failed to find token: %w", err)
 	}
 
 	return sess, nil

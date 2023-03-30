@@ -1,10 +1,11 @@
+// Package users provides operations for users.
 package users
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
+	log "github.com/obalunenko/logger"
 
 	"github.com/obalunenko/btc-wallet/internal/db/users"
 	"github.com/obalunenko/btc-wallet/internal/ops/sessions"
@@ -20,7 +21,7 @@ func Create(b Backends) gin.HandlerFunc {
 
 		id, err := users.Create(ctx, dbc)
 		if err != nil {
-			log.Errorf("failed to create user: %v", err)
+			log.WithError(ctx, err).Error("Failed to create user")
 
 			c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to create user")
 
@@ -29,7 +30,7 @@ func Create(b Backends) gin.HandlerFunc {
 
 		u, err := users.Lookup(ctx, dbc, id)
 		if err != nil {
-			log.Errorf("failed to get user: %v", err)
+			log.WithError(ctx, err).Error("Failed to get user")
 
 			c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to get user")
 
@@ -38,7 +39,7 @@ func Create(b Backends) gin.HandlerFunc {
 
 		sess, err := sessions.New(ctx, b, u.ID)
 		if err != nil {
-			log.Errorf("failed to generate session: %v", err)
+			log.WithError(ctx, err).Error("Failed to generate session")
 
 			c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to create session")
 
@@ -52,6 +53,9 @@ func Create(b Backends) gin.HandlerFunc {
 			Token: token,
 		})
 
-		log.Infof("user created: %+v [%s]", u, token)
+		log.WithFields(ctx, log.Fields{
+			"user_id": u.ID,
+			"token":   token,
+		}).Info("User created")
 	}
 }

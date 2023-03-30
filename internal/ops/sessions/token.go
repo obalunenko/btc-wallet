@@ -4,15 +4,14 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/gob"
-
-	"github.com/pkg/errors"
+	"fmt"
 )
 
 // decode go binary decoder, where argument v interface{} should be of pointer type.
-func decode(str string, v interface{}) error {
+func decode(str string, v any) error {
 	b, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
-		return errors.Wrap(err, `failed base64 Decode`)
+		return fmt.Errorf("failed base64 Decode: %w", err)
 	}
 
 	buf := bytes.NewBuffer(b)
@@ -23,12 +22,12 @@ func decode(str string, v interface{}) error {
 }
 
 // encode go binary to string.
-func encode(u interface{}) (string, error) {
+func encode(u any) (string, error) {
 	b := bytes.Buffer{}
 	e := gob.NewEncoder(&b)
 
 	if err := e.Encode(u); err != nil {
-		return "", errors.Wrap(err, `failed gob Encode`)
+		return "", fmt.Errorf(`failed gob Encode: %w`, err)
 	}
 
 	return base64.StdEncoding.EncodeToString(b.Bytes()), nil
