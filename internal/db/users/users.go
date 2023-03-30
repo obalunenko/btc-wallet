@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	log "github.com/obalunenko/logger"
 )
 
 const (
@@ -31,7 +33,9 @@ func Create(ctx context.Context, dbc *sql.DB) (int64, error) {
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		if err := tx.Rollback(); err != nil {
+			log.WithError(ctx, err).Error("Failed to rollback transaction")
+		}
 	}()
 
 	now := time.Now()

@@ -5,6 +5,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+
+	log "github.com/obalunenko/logger"
 )
 
 const (
@@ -27,7 +29,9 @@ func Create(ctx context.Context, dbc *sql.DB, userID int64, address string) (int
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		if err := tx.Rollback(); err != nil {
+			log.WithError(ctx, err).Error("Failed to rollback transaction")
+		}
 	}()
 
 	res, err := tx.ExecContext(ctx, "INSERT INTO "+table+colsInsert, userID, address)
