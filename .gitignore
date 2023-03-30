@@ -25,4 +25,7 @@ bin/
 
 mounts/
 logs/
-
+dist/
+coverage/
+/.cover/
+tests-report.json

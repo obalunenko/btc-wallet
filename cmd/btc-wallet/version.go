@@ -1,7 +1,9 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
+	"context"
+
+	log "github.com/obalunenko/logger"
 )
 
 const unset = "unset"
@@ -12,8 +14,8 @@ var ( // build info
 	commit  = unset
 )
 
-func printVersion() {
-	log.WithFields(log.Fields{
+func printVersion(ctx context.Context) {
+	log.WithFields(ctx, log.Fields{
 		"version": version,
 		"date":    date,
 		"commit":  commit,

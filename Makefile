@@ -1,26 +1,30 @@
-NAME=btc-wallet
+BIN_DIR=./bin
 
-# COLORS
-GREEN  := $(shell tput -Txterm setaf 2)
-YELLOW := $(shell tput -Txterm setaf 3)
-WHITE  := $(shell tput -Txterm setaf 7)
-RESET  := $(shell tput -Txterm sgr0)
+DOCKER_REPO ?= ghcr.io/obalunenko/
+export DOCKER_REPO
 
+SHELL := env VERSION=$(VERSION) $(SHELL)
+VERSION ?= $(shell git describe --tags $(git rev-list --tags --max-count=1))
+
+APP_NAME?=btc-wallet
+SHELL := env APP_NAME=$(APP_NAME) $(SHELL)
+
+GOTOOLS_IMAGE_TAG?=v0.5.0
+SHELL := env GOTOOLS_IMAGE_TAG=$(GOTOOLS_IMAGE_TAG) $(SHELL)
+
+COMPOSE_TOOLS_FILE=deployments/docker-compose/go-tools-docker-compose.yml
+COMPOSE_TOOLS_CMD_BASE=docker compose -f $(COMPOSE_TOOLS_FILE)
+COMPOSE_TOOLS_CMD_UP=$(COMPOSE_TOOLS_CMD_BASE) up --exit-code-from
+COMPOSE_TOOLS_CMD_PULL=$(COMPOSE_TOOLS_CMD_BASE) pull
 
 TARGET_MAX_CHAR_NUM=20
-
-
-define colored
-	@echo '${GREEN}$1${RESET}'
-endef
 
 ## Show help
 help:
 	${call colored, help is running...}
-	@echo 'link this Makefile from scripts dir to core root'
 	@echo ''
 	@echo 'Usage:'
-	@echo '  ${YELLOW}make${RESET} ${GREEN}<target>${RESET}'
+	@echo '  make <target>'
 	@echo ''
 	@echo 'Targets:'
 	@awk '/^[a-zA-Z\-\_0-9]+:/ { \
@@ -28,158 +32,247 @@ help:
 		if (helpMessage) { \
 			helpCommand = substr($$1, 0, index($$1, ":")-1); \
 			helpMessage = substr(lastLine, RSTART + 3, RLENGTH); \
-			printf "  ${YELLOW}%-$(TARGET_MAX_CHAR_NUM)s${RESET} ${GREEN}%s${RESET}\n", helpCommand, helpMessage; \
+			printf "  %-$(TARGET_MAX_CHAR_NUM)s %s\n", helpCommand, helpMessage; \
 		} \
 	} \
 	{ lastLine = $$0 }' $(MAKEFILE_LIST)
 
-## Compile project
-compile:
-	${call colored, compile is running...}
-	./scripts/compile.sh
-.PHONY: compile
-
-## Docker compose up
-dev-docker-up:
-	${call colored, docker is running...}
-	socat UNIX-LISTEN:/tmp/mysql.sock,fork TCP-CONNECT:0.0.0.0:3306 &
-	docker-compose -f ./docker-compose.dev.yml up --build
-.PHONY: dev-docker-up
-
-## Docker compose down
-dev-docker-down:
-	${call colored, docker is running...}
-	killall socat &
-	docker-compose -f ./docker-compose.dev.yml down --volumes
-
-.PHONY: dev-docker-down
-
-## Docker compose up
-docker-up:
-	${call colored, docker is running...}
-	socat UNIX-LISTEN:/tmp/mysql.sock,fork TCP-CONNECT:0.0.0.0:3306 &
-	docker-compose -f ./docker-compose.yml up --build
-.PHONY: docker-up
-
-## Docker compose down
-docker-down:
-	${call colored, docker is running...}
-	killall socat &
-	docker-compose -f ./docker-compose.yml down --volumes
-
-.PHONY: docker-down
-
-## Run all services
-run-local:
-	${call colored, run-local is running...}
-	./scripts/start-local.sh
-
-.PHONY: run-local
 
 
-## stop all services
-stop-local:
-	${call colored, stop-local is running...}
-	./scripts/stop-all.sh
-.PHONY: stop-local
+## Build project.
+build: compile-app
+.PHONY: build
 
-## db-docker-up:
-db-docker-up:
-	${call colored, db-docker-up is running...}
-	docker-compose -f docker-compose.dev.yml up --build mysql
-.PHONY: db-docker-up
-## drop and set up all databases
-db-all-set-up:
-	${call colored, db-all-set-up is running...}
-	./scripts/db-set-up.sh
-.PHONY: db-all-set-up
+## Compile app.
+compile-app:
+	./scripts/build/app.sh
+.PHONY: compile-app
 
-## Run up DB migrations.
-db-migrate-up:
-	${call colored, db-migrate-up is running...}
-	./scripts/db-migrations-up.sh
-.PHONY: db-migrate-up
+## Test coverage report.
+test-cover:
+	./scripts/tests/coverage.sh
+.PHONY: test-cover
 
-## Run down DB migrations.
-db-migrate-down:
-	${call colored, db-migrate-down is running...}
-	./scripts/db-migrations-down.sh
-.PHONY: db-migrate-down
+prepare-cover-report: test-cover
+	$(COMPOSE_TOOLS_CMD_UP) prepare-cover-report prepare-cover-report
+.PHONY: prepare-cover-report
 
-## Create new DB migration scripts.
-db-migrate-create:
-	${call colored, db-migrate-create is running...}
-	./scripts/db-migrations-create.sh
-.PHONY: db-migrate-create
+## Open coverage report.
+open-cover-report: prepare-cover-report
+	./scripts/open-coverage-report.sh
+.PHONY: open-cover-report
+
+## Update readme coverage.
+update-readme-cover: build prepare-cover-report
+	$(COMPOSE_TOOLS_CMD_UP) update-readme-coverage update-readme-coverage
+.PHONY: update-readme-cover
+
+## Run tests.
+test:
+	$(COMPOSE_TOOLS_CMD_UP) run-tests run-tests
+.PHONY: test
+
+## Run regression tests.
+test-regression: test
+.PHONY: test-regression
+
+## Sync vendor and install needed tools.
+configure: sync-vendor install-tools
+
+## Sync vendor with go.mod.
+sync-vendor:
+	./scripts/sync-vendor.sh
+.PHONY: sync-vendor
+
+## Fix imports sorting.
+imports:
+	$(COMPOSE_TOOLS_CMD_UP) fix-imports fix-imports
+.PHONY: imports
+
+## Format code with go fmt.
+fmt:
+	$(COMPOSE_TOOLS_CMD_UP) fix-fmt fix-fmt
+.PHONY: fmt
+
+## Format code and sort imports.
+format-project: fmt imports
+.PHONY: format-project
+
+## Installs vendored tools.
+install-tools:
+	echo "Installing ${GOTOOLS_IMAGE_TAG}"
+	$(COMPOSE_TOOLS_CMD_PULL)
+.PHONY: install-tools
 
 ## vet project
 vet:
-	${call colored, vet is running...}
-	./scripts/vet.sh
+	./scripts/linting/run-vet.sh
 .PHONY: vet
 
-## lint project
-lint:
-	${call colored, lint is running...}
-	./scripts/run-linters.sh
-.PHONY: lint
+## Run full linting
+lint-full:
+	$(COMPOSE_TOOLS_CMD_UP) lint-full lint-full
+.PHONY: lint-full
 
-lint-ci:
-	${call colored, lint-ci is running...}
-	./scripts/run-linters-ci.sh
-.PHONY: lint-ci
+## Run linting for build pipeline
+lint-pipeline:
+	$(COMPOSE_TOOLS_CMD_UP) lint-pipeline lint-pipeline
+.PHONY: lint-pipeline
 
-## Test all packages
-test:
-	${call colored, test is running...}
-	./scripts/run-tests.sh
-.PHONY: test
+## Run linting for sonar report
+lint-sonar:
+	$(COMPOSE_TOOLS_CMD_UP) lint-sonar lint-sonar
+.PHONY: lint-sonar
 
-## Test coverage
-test-cover:
-	${call colored, test-cover is running...}
-	./scripts/coverage.sh
-.PHONY: test-cover
+## recreate all generated code and documentation.
+codegen:
+	$(COMPOSE_TOOLS_CMD_UP) go-generate go-generate
+.PHONY: codegen
 
-
-## Fix imports sorting
-imports:
-	${call colored, fix-imports is running...}
-	./scripts/fix-imports.sh
-.PHONY: imports
-
-## dependencies - fetch all dependencies for sripts
-dependencies:
-	${call colored, get-dependencies is running...}
-	./scripts/get-dependencies.sh
-.PHONY: dependencies
-
-## Sync dependencies
-gomod:
-	${call colored, gomod sync is running...}
-	./scripts/gomod.sh
-.PHONY: gomod
+## recreate all generated code and swagger documentation and format code.
+generate: codegen format-project vet
+.PHONY: generate
 
 ## Release
 release:
-	${call colored, release is running...}
-	./scripts/release.sh
+	./scripts/release/release.sh
 .PHONY: release
 
-## Format code.
-fmt:
-	${call colored, fmt is running...}
-	./scripts/fmt.sh
-.PHONY: fmt
+## Release local snapshot
+release-local-snapshot:
+	./scripts/release/local-snapshot-release.sh
+.PHONY: release-local-snapshot
 
-## Release new version
-new-version: lint test compile
-	./scripts/version.sh
-.PHONY: new-version
+## Check goreleaser config.
+check-releaser:
+	./scripts/release/check.sh
+.PHONY: check-releaser
 
+## Issue new release.
+new-version: vet test-regression build
+	./scripts/release/new-version.sh
+.PHONY: new-release
+
+
+
+######################################
+############### DOCKER ###############
+######################################
+
+
+################ BASE #################
+## Build docker base images.
+docker-build-base: docker-build-base-alpine docker-build-base-go
+.PHONY: docker-build-base
+
+## Build docker base image for GO
+docker-build-base-go:
+	./scripts/docker/build/base/go.sh
+.PHONY: docker-build-base-go
+
+## Build docker base image for GO
+docker-build-base-alpine:
+	./scripts/docker/build/base/alpine.sh
+.PHONY: docker-build-base-alpine
+
+
+################ PROD #################
+
+## Push all prod images to registry.
+docker-push-prod-images:
+	./scripts/docker/push-all-images-to-registry.sh ${DOCKER_REPO}
+.PHONY: docker-push-prod-images
+
+## Build all services docker prod images for deploying to gcloud.
+docker-build-prod: docker-build-backend-prod
+.PHONY: docker-build-prod
+
+## Build all backend services docker prod images for deploying to gcloud.
+docker-build-backend-prod: docker-build-btcwallet-prod
+.PHONY: docker-build-backend-prod
+
+## Build admin service prod docker image.
+docker-build-btcwallet-prod:
+	./scripts/docker/build/prod/btc-wallet.sh
+.PHONY: docker-build-btcwallet-prod
+
+## Docker compose up - deploys prod containers on docker locally.
+docker-compose-up:
+	./scripts/docker/compose/prod/up.sh
+.PHONY: docker-compose-up
+
+## Docker compose down - remove all prod containers in docker locally.
+docker-compose-down:
+	./scripts/docker/compose/prod/down.sh
+.PHONY: docker-compose-down
+
+## Docker compose stop - stops all prod containers in docker locally.
+docker-compose-stop:
+	./scripts/docker/compose/prod/stop.sh
+.PHONY: docker-compose-stop
+
+## Build all prod images: base and services.
+docker-prepare-images-prod: docker-build-base docker-build-prod
+.PHONY: docker-prepare-images-prod
+
+## Prod local full deploy: build base images, build services images, deploy to docker compose
+deploy-local-prod: docker-prepare-images-prod run-local-prod
+.PHONY: deploy-local-prod
+
+## Run locally: deploy to docker compose and expose tunnels.
+run-local-prod: docker-compose-up
+.PHONY: run-local-prod
+
+## Stop the world and close tunnels.
+stop-local-prod: docker-compose-stop
+.PHONY: stop-local-prod
+
+################## DEV ###################
+
+## Build docker dev image for running locally.
+docker-build-dev: docker-build-btcwallet-dev
+.PHONY: docker-build-dev
+
+## Build admin service dev docker image.
+docker-build-btcwallet-dev:
+	./scripts/docker/build/dev/btc-wallet.sh
+.PHONY: docker-build-btcwallet-dev
+
+## Dev Docker-compose up with stubbed 3rd party dependencies.
+dev-docker-compose-up:
+	./scripts/docker/compose/dev/up.sh
+.PHONY: dev-docker-compose-up
+
+## Docker compose down.
+dev-docker-compose-down:
+	./scripts/docker/compose/dev/down.sh
+.PHONY: dev-docker-compose-down
+
+## Docker compose stop - stops all dev containers in docker locally.
+dev-docker-compose-stop:
+	./scripts/docker/compose/dev/stop.sh
+.PHONY: dev-docker-compose-stop
+
+## Build all dev images: base and services.
+docker-prepare-images-dev: docker-build-base docker-build-dev
+.PHONY: docker-prepare-images-dev
+
+## Dev local full deploy: build base images, build services images, deploy to docker compose
+deploy-local-dev: docker-prepare-images-dev run-local-dev
+.PHONY: deploy-local-dev
+
+## Run locally dev: deploy to docker compose and expose tunnels.
+run-local-dev: dev-docker-compose-up
+.PHONY: run-local-dev
+
+## Stop the world and close tunnels.
+stop-local-dev: dev-docker-compose-stop
+.PHONY: stop-local-prod
+
+## Open containers logs service url.
+open-container-logs:
+	./scripts/browser-opener.sh -u 'http://localhost:9999/'
+.PHONY: open-container-logs
 
 .DEFAULT_GOAL := help
-
-
-
 

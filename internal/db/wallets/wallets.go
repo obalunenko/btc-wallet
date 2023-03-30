@@ -1,10 +1,12 @@
+// Package wallets provides access to wallets table.
 package wallets
 
 import (
 	"context"
 	"database/sql"
+	"errors"
 
-	"github.com/pkg/errors"
+	log "github.com/obalunenko/logger"
 )
 
 const (
@@ -27,7 +29,9 @@ func Create(ctx context.Context, dbc *sql.DB, userID int64, address string) (int
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		if err = tx.Rollback(); err != nil {
+			log.WithError(ctx, err).Error("Failed to rollback transaction")
+		}
 	}()
 
 	res, err := tx.ExecContext(ctx, "INSERT INTO "+table+colsInsert, userID, address)
@@ -71,10 +75,6 @@ func ListForUser(ctx context.Context, dbc *sql.DB, userID int64) ([]Wallet, erro
 		return nil, err
 	}
 
-	defer func() {
-		_ = rows.Close()
-	}()
-
 	return list(rows)
 }
 
@@ -96,6 +96,12 @@ func CountForUser(ctx context.Context, dbc *sql.DB, userID int64) (int, error) {
 }
 
 func list(rows *sql.Rows) ([]Wallet, error) {
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.WithError(context.Background(), err).Error("Failed to close rows")
+		}
+	}()
+
 	var res []Wallet
 
 	for rows.Next() {

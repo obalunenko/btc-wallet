@@ -1,39 +1,14 @@
+// Package db provides a database connection pool.
 package db
 
 import (
 	"database/sql"
-	"flag"
-	"os"
+	"errors"
 	"strings"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/pkg/errors"
 )
-
-var sockFile = getSocketFile()
-
-var (
-	dbURI = flag.String("db", "mysql://root@unix("+sockFile+")/test?",
-		"Database URI")
-	dbMaxOpenConns = flag.Int("db_max_open_conns", 100,
-		"Maximum number of open database connections")
-	dbMaxIdleConns = flag.Int("db_max_idle_conns", 50,
-		"Maximum number of idle database connections")
-	dbConnMaxLifetime = flag.Duration("db_conn_max_lifetime", time.Minute,
-		"Maximum time a single database connection can be left open")
-)
-
-func getSocketFile() string {
-	sock := "/tmp/mysql.sock"
-
-	if _, err := os.Stat(sock); os.IsNotExist(err) {
-		// try common linux/Ubuntu socket file location
-		return "/var/run/mysqld/mysqld.sock"
-	}
-
-	return sock
-}
 
 func build(connectStr string) (string, error) {
 	const prefix = "mysql://"
@@ -70,29 +45,32 @@ func connect(driver, connectStr string) (*sql.DB, error) {
 		return nil, err
 	}
 
-	dbc.SetMaxOpenConns(*dbMaxOpenConns)
-	dbc.SetMaxIdleConns(*dbMaxIdleConns)
-	dbc.SetConnMaxLifetime(*dbConnMaxLifetime)
-
 	return dbc, nil
+}
+
+// ConnectParams holds the parameters for connecting to a database.
+type ConnectParams struct {
+	ConnURI         string
+	MaxOpenConns    int
+	MaxIdleConns    int
+	ConnMaxLifetime time.Duration
 }
 
 // ConnectWithURI establishes a database connection to the given URI.  If
 // readonly is provided, it will be used as a readonly replica.
-func ConnectWithURI(uri string) (*sql.DB, error) {
-	dbc, err := connect("mysql", uri)
+func ConnectWithURI(p ConnectParams) (*sql.DB, error) {
+	dbc, err := connect("mysql", p.ConnURI)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = dbc.Ping(); err != nil {
+	dbc.SetMaxOpenConns(p.MaxOpenConns)
+	dbc.SetMaxIdleConns(p.MaxIdleConns)
+	dbc.SetConnMaxLifetime(p.ConnMaxLifetime)
+
+	if err := dbc.Ping(); err != nil {
 		return nil, err
 	}
 
 	return dbc, nil
-}
-
-// Connect establishes db connection.
-func Connect() (*sql.DB, error) {
-	return ConnectWithURI(*dbURI)
 }
