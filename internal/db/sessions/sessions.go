@@ -40,7 +40,7 @@ func Create(ctx context.Context, dbc *sql.DB, userID int64, token string, expira
 	}
 
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			log.WithError(ctx, err).Error("Failed to rollback transaction")
 		}
 	}()
