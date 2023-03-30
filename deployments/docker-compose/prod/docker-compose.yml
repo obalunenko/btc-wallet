@@ -49,10 +49,18 @@ services:
     networks:
       - btc-wallet_dev
     image: olegbalunenko/btc-wallet
-    env_file:
-      - .env
     environment:
       WAIT_HOSTS: mysql:3306
+      BTCWALLET_DB_CONN_MAX_LIFE: 1m
+      BTCWALLET_DB_MAX_IDLE_CONNS: 50
+      BTCWALLET_DB_MAX_OPEN_CONS: 100
+      BTCWALLET_LOG_LEVEL: DEBUG
+      BTCWALLET_LOG_FILE: logs/btc_wallet.log
+      BTCWALLET_LOG_FORMAT: 'text'
+      BTCWALLET_LOG_SENTRY_DSN: ''
+      BTCWALLET_LOG_SENTRY_TRACE: false
+      BTCWALLET_LOG_SENTRY_TRACE_LEVEL: 'ERROR'
+      BTCWALLET_DB: mysql://root@tcp(mysql:3306)/btc_wallet?
     ports:
       - "8080:8080"
     expose:
