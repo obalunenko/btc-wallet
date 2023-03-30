@@ -1,3 +1,4 @@
+// Package sessions provides database access to sessions.
 package sessions
 
 import (

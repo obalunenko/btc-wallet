@@ -1,11 +1,12 @@
+// Package users provides functions to work with users table.
 package users
 
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -37,7 +38,7 @@ func Create(ctx context.Context, dbc *sql.DB) (int64, error) {
 
 	res, err := tx.ExecContext(ctx, "INSERT INTO"+table+cols+"VALUES (?)", now)
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to insert data")
+		return 0, fmt.Errorf("failed to insert data: %w", err)
 	}
 
 	count, err := res.RowsAffected()

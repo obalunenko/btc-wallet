@@ -1,3 +1,4 @@
+// Package state provides state specific information.
 package state
 
 import (
@@ -22,8 +23,8 @@ func (s *state) DB() *sql.DB {
 }
 
 // New creates new state.
-func New() (State, error) {
-	dbc, err := db.Connect()
+func New(params db.ConnectParams) (State, error) {
+	dbc, err := db.ConnectWithURI(params)
 	if err != nil {
 		return nil, err
 	}

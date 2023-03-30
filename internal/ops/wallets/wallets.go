@@ -1,3 +1,4 @@
+// Package wallets provides operations for wallets.
 package wallets
 
 import (
@@ -5,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	log "github.com/sirupsen/logrus"
+	log "github.com/obalunenko/logger"
 
 	"github.com/obalunenko/btc-wallet/internal/db/wallets"
 	"github.com/obalunenko/btc-wallet/internal/ops/sessions"
@@ -26,7 +27,7 @@ func Create(b Backends) gin.HandlerFunc {
 
 		sess, err := sessions.GetSessionFromRequest(b, c.Request)
 		if err != nil {
-			log.Errorf("failed to get session: %v", err)
+			log.WithError(ctx, err).Error("Failed to get session")
 
 			c.AbortWithStatusJSON(http.StatusUnauthorized, "invalid session")
 
@@ -37,7 +38,9 @@ func Create(b Backends) gin.HandlerFunc {
 
 		count, err := wallets.CountForUser(ctx, dbc, uID)
 		if err != nil {
-			log.Errorf("failed to get count of wallets [user_id: %d]", uID)
+			log.WithError(ctx, err).
+				WithField("user_id", uID).
+				Error("Failed to get count of wallets")
 
 			c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to create wallet")
 
@@ -45,7 +48,9 @@ func Create(b Backends) gin.HandlerFunc {
 		}
 
 		if count >= maxWalletsForUser {
-			log.Errorf("wallets limit reached [user_id: %d]", uID)
+			log.WithError(ctx, err).
+				WithField("user_id", uID).
+				Error("Wallets limit reached")
 
 			c.AbortWithStatusJSON(http.StatusBadRequest, "wallets limit reached")
 
@@ -56,7 +61,9 @@ func Create(b Backends) gin.HandlerFunc {
 
 		id, err := wallets.Create(ctx, dbc, uID, addr)
 		if err != nil {
-			log.Errorf("failed to create wallet [user_id: %d]: %v", uID, err)
+			log.WithError(ctx, err).
+				WithField("user_id", uID).
+				Error("failed to create wallet")
 
 			c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to create wallet")
 
@@ -65,7 +72,11 @@ func Create(b Backends) gin.HandlerFunc {
 
 		w, err := wallets.Lookup(ctx, dbc, id)
 		if err != nil {
-			log.Errorf("wallet not created [user_id: %d], [address: %s], [id: %d]: %v", uID, addr, id, err)
+			log.WithError(ctx, err).WithFields(log.Fields{
+				"user_id": uID,
+				"address": addr,
+				"id":      id,
+			}).Error("Wallet not created")
 
 			c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to create wallet")
 
@@ -94,7 +105,7 @@ func LookupAddress(b Backends) gin.HandlerFunc {
 
 		addr := c.Param("address")
 		if addr == "" {
-			log.Error("empty address in request")
+			log.Error(ctx, "Empty address in request")
 
 			c.AbortWithStatusJSON(http.StatusBadRequest, "invalid address value")
 
@@ -103,7 +114,7 @@ func LookupAddress(b Backends) gin.HandlerFunc {
 
 		w, err := wallets.LookupAddress(ctx, dbc, addr)
 		if err != nil {
-			log.WithFields(map[string]interface{}{
+			log.WithFields(ctx, log.Fields{
 				"address": addr,
 				"error":   err,
 			}).Error("failed to find wallet")
@@ -113,7 +124,7 @@ func LookupAddress(b Backends) gin.HandlerFunc {
 			return
 		}
 
-		// TODO(oleg.balunenko): add real rates and update balance for new wallet.
+		// TODO(@obalunenko): add real rates and update balance for new wallet.
 		c.JSON(http.StatusOK, responseWallet{
 			Address: w.Address,
 			Balance: struct {
@@ -135,7 +146,7 @@ func List(b Backends) gin.HandlerFunc {
 
 		sess, err := sessions.GetSessionFromRequest(b, c.Request)
 		if err != nil {
-			log.Errorf("failed to get session: %v", err)
+			log.WithError(ctx, err).Error("Failed to get session")
 
 			c.AbortWithStatusJSON(http.StatusUnauthorized, "invalid session")
 
@@ -146,10 +157,10 @@ func List(b Backends) gin.HandlerFunc {
 
 		list, err := wallets.ListForUser(ctx, dbc, uID)
 		if err != nil {
-			log.WithFields(map[string]interface{}{
+			log.WithFields(ctx, log.Fields{
 				"user_id": uID,
 				"error":   err,
-			}).Error("failed to list wallets")
+			}).Error("Failed to list wallets")
 
 			c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to list wallets")
 
@@ -170,6 +181,6 @@ func List(b Backends) gin.HandlerFunc {
 }
 
 // ListTransactions returns transactions related to the wallet.
-func ListTransactions(b Backends) gin.HandlerFunc {
+func ListTransactions(_ Backends) gin.HandlerFunc {
 	return func(c *gin.Context) {}
 }

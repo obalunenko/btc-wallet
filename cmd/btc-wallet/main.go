@@ -1,31 +1,41 @@
+// btc-wallet is a simple service that allows to create and manage wallets.
 package main
 
 import (
-	"flag"
+	"context"
 	"net"
 
-	log "github.com/sirupsen/logrus"
+	log "github.com/obalunenko/logger"
 
-	"github.com/obalunenko/btc-wallet/internal/logger"
+	"github.com/obalunenko/btc-wallet/cmd/btc-wallet/internal/config"
+	"github.com/obalunenko/btc-wallet/cmd/btc-wallet/logger"
+	"github.com/obalunenko/btc-wallet/internal/db"
 	"github.com/obalunenko/btc-wallet/internal/routes"
 	"github.com/obalunenko/btc-wallet/internal/state"
 )
 
 func main() {
-	flag.Parse()
+	ctx := context.Background()
 
-	logger.Init()
+	config.Load()
 
-	printVersion()
+	logger.Init(ctx)
 
-	st, err := state.New()
+	printVersion(ctx)
+
+	st, err := state.New(db.ConnectParams{
+		ConnURI:         config.DBConnURI(),
+		MaxOpenConns:    config.DBMaxOpenConns(),
+		MaxIdleConns:    config.DBMaxIdleConns(),
+		ConnMaxLifetime: config.DBConnMaxLifetime(),
+	})
 	if err != nil {
-		log.Fatalf("failed to init state: %v", err)
+		log.WithError(ctx, err).Fatal("Failed to init state")
 	}
 
 	r := routes.Register(st)
 
 	if err := r.Run(net.JoinHostPort("", "8080")); err != nil {
-		log.Fatalf("server error: %v", err)
+		log.WithError(ctx, err).Fatal("Failed to init state")
 	}
 }

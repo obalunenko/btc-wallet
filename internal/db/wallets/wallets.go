@@ -1,10 +1,10 @@
+// Package wallets provides access to wallets table.
 package wallets
 
 import (
 	"context"
 	"database/sql"
-
-	"github.com/pkg/errors"
+	"errors"
 )
 
 const (
