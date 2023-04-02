@@ -1,3 +1,4 @@
+// Package ledgers provides methods to work with ledgers.Ledger table.
 package ledgers
 
 import (
