@@ -77,5 +77,6 @@ func scan(row *sql.Row) (User, error) {
 	if err := row.Scan(&u.ID, &u.CreatedAt); err != nil {
 		return NULL, err
 	}
+
 	return u, nil
 }

@@ -24,7 +24,7 @@ type Wallet struct {
 // NULL represents empty default wallet value.
 var NULL = Wallet{}
 
-// Create creates Wallet for users.User with passed defined address.
+// Create inserts new Wallet into database and returns its ID.
 func Create(ctx context.Context, dbc *sql.DB, userID int64, address string) (int64, error) {
 	tx, err := dbc.Begin()
 	if err != nil {
@@ -57,21 +57,21 @@ func Create(ctx context.Context, dbc *sql.DB, userID int64, address string) (int
 	return id, tx.Commit()
 }
 
-// Lookup returns Wallet by it's ID.
+// Lookup returns Wallet by its ID.
 func Lookup(ctx context.Context, dbc *sql.DB, id int64) (Wallet, error) {
 	row := dbc.QueryRowContext(ctx, "SELECT * FROM"+table+"WHERE id=?", id)
 
 	return scan(row)
 }
 
-// LookupAddress returns Wallet by it's address.
+// LookupAddress returns Wallet by its address.
 func LookupAddress(ctx context.Context, dbc *sql.DB, address string) (Wallet, error) {
 	row := dbc.QueryRowContext(ctx, "SELECT * FROM"+table+"WHERE address=?", address)
 
 	return scan(row)
 }
 
-// ListForUser returns list of Wallet for users.User but his ID.
+// ListForUser returns slice of Wallet for users.User but his ID.
 func ListForUser(ctx context.Context, dbc *sql.DB, userID int64) ([]Wallet, error) {
 	rows, err := dbc.QueryContext(ctx, "SELECT * FROM"+table+"WHERE user_id=?", userID)
 	if err != nil {
@@ -81,7 +81,7 @@ func ListForUser(ctx context.Context, dbc *sql.DB, userID int64) ([]Wallet, erro
 	return list(rows)
 }
 
-// CountForUser returns number of Wallet for user by his ID.
+// CountForUser returns number of Wallet for users.User but his ID.
 func CountForUser(ctx context.Context, dbc *sql.DB, userID int64) (int, error) {
 	var res int
 
@@ -98,6 +98,7 @@ func CountForUser(ctx context.Context, dbc *sql.DB, userID int64) (int, error) {
 	return res, nil
 }
 
+// list scans rows into Wallet slice.
 func list(rows *sql.Rows) ([]Wallet, error) {
 	defer func() {
 		if err := rows.Close(); err != nil {
@@ -124,6 +125,7 @@ func list(rows *sql.Rows) ([]Wallet, error) {
 	return res, nil
 }
 
+// scan scans row into Wallet.
 func scan(row *sql.Row) (Wallet, error) {
 	var w Wallet
 

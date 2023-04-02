@@ -5,7 +5,7 @@ import (
 	"database/sql"
 )
 
-// TX ...
+// TX represents transactions.Tx table.
 type TX struct {
 	ID                 int64
 	UserID             int64
