@@ -7,3 +7,4 @@ CREATE TABLE sessions (
 
     PRIMARY KEY (id)
 );
+COMMIT ;

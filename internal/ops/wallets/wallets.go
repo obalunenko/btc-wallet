@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	log "github.com/obalunenko/logger"
 
+	"github.com/obalunenko/btc-wallet/internal/db/ledgers"
 	"github.com/obalunenko/btc-wallet/internal/db/wallets"
 	"github.com/obalunenko/btc-wallet/internal/ops/sessions"
 )
@@ -83,15 +84,42 @@ func Create(b Backends) gin.HandlerFunc {
 			return
 		}
 
-		// TODO(oleg.balunenko): add real rates and update balance for new wallet.
+		_, err = ledgers.Create(ctx, dbc, w.ID)
+		if err != nil {
+			log.WithFields(ctx, log.Fields{
+				"wallet_id": w.ID,
+				"user_id":   uID,
+				"error":     err,
+			}).Error("failed to create ledger for wallet")
+
+			c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to create ledger for wallet")
+
+			return
+		}
+
+		_, err = ledgers.LookupWalletID(ctx, dbc, w.ID)
+		if err != nil {
+			log.WithFields(ctx, log.Fields{
+				"wallet_id": w.ID,
+				"user_id":   uID,
+				"error":     err,
+			}).Error("failed to find ledger for wallet")
+
+			c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to find ledger for wallet")
+
+			return
+		}
+
+		// TODO(oleg.balunenko): Add real rates and update balance for new wallet.
 		c.JSON(http.StatusCreated, responseWallet{
 			Address: w.Address,
-			Balance: struct {
-				USD string `json:"usd"`
-				BTC string `json:"btc"`
-			}{
+			Balance: balance{
 				USD: "usd mock",
 				BTC: "btc mock",
+			},
+			Available: balance{
+				USD: "usd available mock",
+				BTC: "btc available mock",
 			},
 		})
 	}

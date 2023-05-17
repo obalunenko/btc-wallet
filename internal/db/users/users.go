@@ -22,7 +22,7 @@ type User struct {
 	CreatedAt sql.NullTime `sql:"created_at"`
 }
 
-// NULL represents empty User.
+// NULL represents empty User default value.
 var NULL = User{}
 
 // Create inserts new User into database and returns its ID.
@@ -62,13 +62,21 @@ func Create(ctx context.Context, dbc *sql.DB) (int64, error) {
 
 // Lookup returns User by its ID.
 func Lookup(ctx context.Context, dbc *sql.DB, id int64) (User, error) {
-	var user User
-
 	row := dbc.QueryRowContext(ctx, "SELECT * FROM "+table+" WHERE id=?", id)
 
-	if err := row.Scan(&user.ID, &user.CreatedAt); err != nil {
+	return scan(row)
+}
+
+func scan(row *sql.Row) (User, error) {
+	var u User
+
+	if err := row.Err(); err != nil {
 		return NULL, err
 	}
 
-	return user, nil
+	if err := row.Scan(&u.ID, &u.CreatedAt); err != nil {
+		return NULL, err
+	}
+
+	return u, nil
 }
